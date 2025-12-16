@@ -20,8 +20,6 @@ describe('Character class validation', () => {
   });
 
   test('should create valid character with correct default stats', () => {
-    // Direct Character creation is technically allowed if type is valid, though usually abstract.
-    // Based on requirements, Character is the base, properties validation is on valid types.
     const char = new Character('Test', 'Bowman');
     expect(char).toEqual({
       name: 'Test',
@@ -52,5 +50,47 @@ describe('Subclasses creation', () => {
       attack: expectedAttack,
       defence: expectedDefence,
     });
+  });
+});
+
+describe('Character Logic', () => {
+  test('levelUp should increase level and stats', () => {
+    const char = new Bowman('Bowman');
+    char.health = 50; // Reduce health to check reset
+    char.levelUp();
+
+    expect(char.level).toBe(2);
+    expect(char.attack).toBe(25 * 1.2);
+    expect(char.defence).toBe(25 * 1.2);
+    expect(char.health).toBe(100);
+  });
+
+  test('levelUp should throw error if health is 0', () => {
+    const char = new Bowman('Bowman');
+    char.health = 0;
+
+    expect(() => char.levelUp()).toThrow('Cannot level up a dead character');
+  });
+
+  test('damage should reduce health correctly', () => {
+    const char = new Bowman('Bowman'); // def: 25
+    // Damage: 10 * (1 - 25/100) = 10 * 0.75 = 7.5
+    // Health: 100 - 7.5 = 92.5
+    char.damage(10);
+    expect(char.health).toBeCloseTo(92.5);
+  });
+
+  test('damage should not reduce health below 0', () => {
+    const char = new Bowman('Bowman'); // def: 25
+    // Damage to kill: need > 100 / 0.75 = 133.33 -> let's do 200
+    char.damage(200);
+    expect(char.health).toBe(0);
+  });
+
+  test('damage should do nothing if health is already 0', () => {
+    const char = new Bowman('Bowman');
+    char.health = 0;
+    char.damage(10);
+    expect(char.health).toBe(0);
   });
 });
